@@ -37,21 +37,37 @@ def r_sq(residuals, sum_squares):
 
 def linear_regression_gd(X, y, gd_iters, plt):
     
-    # Starting values for lr, gd
+    # Starting values for the slope (lambda1) and constant(bias)
     lambda1 = 0.0
     bias = 0.0
+    
+    # As we approach a local miniumu, gradient descent will automatically take
+    # smaller steps. This is why there is no need to decrease alpha over time
     alpha = 0.05  
-    m = len(X)
     
     # starting values for measuring the model
     sum_squares = np.sum((np.mean(y) - y)**2)
     mse_values = []
     rsq = 0
+    m = len(X)
     
     for i in range(gd_iters):
 
         # get the errors for lambda1, bias
         errors = residuals(X, y, lambda1, bias) 
+        
+        # partial derviative of cost function:
+        # (d / d * theta) * J(lambda1, bias) 
+        #   =>  (d/d * theta) * ( 1/2*m * sum ( (h(X) - 1 )**2) )
+        #   =>  (d/d * theta) * ( 1/2*m * sum ( ( (lambda1*X + bias) - 1 )**2) )
+        #
+        # simplified/derived equation, separated for lambda, bias:
+        #   =>  1/m * sum( (lambda1*X + bias ) - y ) * X     
+        #   =>  1/m * sum( (lambda1 * x + bias ) - y )
+        #
+        # applying gradient descent:
+        #   =>  lambda1 = lambda1 - alpha * 1/m * sum( (lambda1*X + bias ) - y ) * X 
+        #   =>  bias = bias - alpha * 1/m * sum( (lambda1 * x + bias ) - y )
         
         # calculate gradient for lambda1, bias usimg the residuals/cost
         gradient_l = (1.0/m) * (np.sum((errors*X)))
@@ -74,6 +90,8 @@ def linear_regression_gd(X, y, gd_iters, plt):
     plt.plot(mse_values)
     plt.show()
     
+    
+    # TODO - How can we apply a stopping point for convergence?
     return lambda1, bias, rsq
 
 
@@ -87,10 +105,12 @@ def main():
     # Examine thge Relationship
     plt = visualise_relationship(X, y)
     
-    # Standardise X
+    # Standardise X, which transforms the data, effectively moving X to the 
+    # negative part of the axis, and making the scale smaller. 
     X = (X - np.mean(X))/np.std(X)
     
-    # Build the model
+    # Build the linear regression model, applying gradient descent algorithm,
+    # to find the local minimum/convergence
     lambda1, bias, rsq = linear_regression_gd(X, y, 500, plt) 
     
     print('lambda1 = ', lambda1)
